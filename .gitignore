@@ -1,0 +1,30 @@
+# Machine-specific and ephemeral
+history.jsonl
+projects/
+sessions/
+session-env/
+shell-snapshots/
+cache/
+paste-cache/
+todos/
+tasks/
+plans/
+telemetry/
+statsig/
+stats-cache.json
+debug/
+file-history/
+checkpoints/
+downloads/
+mcp-needs-auth-cache.json
+settings.local.json
+backups/
+ide/
+config/
+plugins/
+
+# Agents (not synced - needs cleanup first)
+agents/
+
+# macOS
+.DS_Store
