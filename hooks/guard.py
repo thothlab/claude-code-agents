@@ -54,8 +54,21 @@ def last_user_messages(transcript_path: str, n: int = 3) -> str:
                     texts.append(content)
                 elif isinstance(content, list):
                     for p in content:
-                        if isinstance(p, dict) and p.get("type") == "text":
+                        if not isinstance(p, dict):
+                            continue
+                        ptype = p.get("type")
+                        if ptype == "text":
                             texts.append(p.get("text", "") or "")
+                        elif ptype == "tool_result":
+                            # AskUserQuestion answers come back as tool_result;
+                            # treat their text as authorized user input.
+                            tc = p.get("content")
+                            if isinstance(tc, str):
+                                texts.append(tc)
+                            elif isinstance(tc, list):
+                                for x in tc:
+                                    if isinstance(x, dict) and x.get("type") == "text":
+                                        texts.append(x.get("text", "") or "")
     except Exception:
         return ""
     return "\n".join(texts[-n:]).lower()
@@ -84,9 +97,9 @@ PUSH_KEYWORDS = [
 ]
 
 NEW_MD_KEYWORDS = [
-    r"\b(readme|notes|summary|changelog|todo|claude\.md|memory\.md|onboarding|spec|prd|architecture)\b",
-    r"(создай|напиши|сделай|create|write|make|generate|draft)\s+[^.]{0,40}(\.md|документ|markdown|readme|notes|summary|changelog|memo)",
-    r"\b(документац|markdown|документ\b)",
+    r"\b(readme|notes|summary|changelog|todo|claude\.md|memory\.md|onboarding|spec|prd|architecture|install|contributing|license)\b",
+    r"(создай|напиши|сделай|create|write|make|generate|draft|add)\s+[^.]{0,40}(\.md|документ|markdown|readme|notes|summary|changelog|memo|install|инструкц)",
+    r"\b(документац|markdown|документ\b|инструкц)",
 ]
 
 
