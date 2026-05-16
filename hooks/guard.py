@@ -60,15 +60,21 @@ def last_user_messages(transcript_path: str, n: int = 3) -> str:
                         if ptype == "text":
                             texts.append(p.get("text", "") or "")
                         elif ptype == "tool_result":
-                            # AskUserQuestion answers come back as tool_result;
-                            # treat their text as authorized user input.
+                            # Most tool_results are machine output (Bash stdout etc.) —
+                            # ignore those. AskUserQuestion answers have a recognisable
+                            # marker; include them as authorized user input.
                             tc = p.get("content")
+                            collected = ""
                             if isinstance(tc, str):
-                                texts.append(tc)
+                                collected = tc
                             elif isinstance(tc, list):
+                                buf: list[str] = []
                                 for x in tc:
                                     if isinstance(x, dict) and x.get("type") == "text":
-                                        texts.append(x.get("text", "") or "")
+                                        buf.append(x.get("text", "") or "")
+                                collected = "\n".join(buf)
+                            if "User has answered" in collected and len(collected) < 4000:
+                                texts.append(collected)
     except Exception:
         return ""
     return "\n".join(texts[-n:]).lower()
