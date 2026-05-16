@@ -22,6 +22,9 @@ backups/
 ide/
 config/
 plugins/
+.last-cleanup
+hooks/__pycache__/
+hooks/tool-size.log
 
 # Agents (not synced - needs cleanup first)
 agents/
