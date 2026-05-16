@@ -63,3 +63,21 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
+## Techniques
+
+### Video bug reports — extract frames with ffmpeg
+
+`Read` не открывает бинарные `.mp4`. Когда юзер прикладывает скринрекордер, не сдаваться с «не могу прочитать видео» — пилить через `ffmpeg` (есть в `~/homebrew/bin/`), потом `Read` каждый PNG.
+
+Базовый рецепт:
+```bash
+mkdir -p /tmp/frames
+ffmpeg -y -i video.mp4 -vf "fps=5,scale=432:-1" /tmp/frames/f_%03d.png
+```
+
+- `fps=5` хватает для типичных UI-багов длительностью 10-30 сек. Для тонких анимаций — `fps=10`.
+- `scale=432:-1` ускоряет извлечение и чтение. Для мелкого текста (превью recents и т.п.) — `scale=864:-1` или больше.
+- Перед извлечением полезно: `ffprobe -v error -show_entries stream=width,height,r_frame_rate,duration,nb_frames -of default=noprint_wrappers=1 video.mp4`.
+
+Тактика поиска ключевых моментов: `ls -la /tmp/frames/` — скачок размера PNG означает анимацию/переход. Удобно для поиска моментов сворачивания/восстановления, нажатий и т.п.
