@@ -76,6 +76,52 @@ Observability: размер ответа каждого tool-call дописыв
 | `prd` | Создание подробного PRD и декомпозиция инициативы на task-файлы + отчёты выполнения (`tasks/prd_XX_*`). |
 | `skill-builder` | Создание новых skills для Claude Code с правильным YAML-frontmatter, прогрессивным раскрытием и полной структурой директории. |
 
+## Память: agentmemory
+
+Memory-инфраструктура подключается через MCP shim `@agentmemory/mcp`, прописанный в `~/.claude.json` (а не в этом репо — там персональные пути и токены). После установки в Claude Code появляются tools `mcp__agentmemory__memory_save`, `memory_recall`, `memory_smart_search`, `memory_sessions`.
+
+> ⚠️ **Не путать с плагином `rohitg00/agentmemory`** (одноимённый GitHub-репо). Тот plugin-вариант с 12 хуками известен зацикливанием через Stop-hook ([issue #149](https://github.com/rohitg00/agentmemory/issues/149)) и активным расходом API-токенов. **Не использовать.** Хотя в `settings.json` остались декларативные записи (`enabledPlugins.agentmemory@agentmemory`, `extraKnownMarketplaces.agentmemory`) — они неактивны (`plugins/installed_plugins.json` пуст), и это унаследовано из истории merge'ев. Удалить можно одним PR; пока оставлено для совместимости с конфигом домашней машины.
+
+### Архитектура (центральный сервер + туннель)
+
+1. **Сервер** `@agentmemory/agentmemory@0.9.4` на одной машине (типично — home Mac mini под launchd `dev.agentmemory.server`):
+   ```bash
+   npx -y @agentmemory/agentmemory
+   ```
+   Слушает 3111/3112/3113. БД в `~/.agentmemory-server/data/`.
+
+2. **Туннель** на каждом клиенте через autossh (под launchd `dev.agentmemory.tunnel`):
+   ```bash
+   autossh -M 0 -N -L 3111:127.0.0.1:3111 -L 3112:127.0.0.1:3112 -L 3113:127.0.0.1:3113 <ssh-alias-to-server>
+   ```
+   На этой машине: `~/Library/LaunchAgents/dev.agentmemory.tunnel.plist`, target host `mac` (ProxyJump через VPS, см. `~/.ssh/config`).
+
+3. **MCP shim** в `~/.claude.json` (глобально или per-project):
+   ```json
+   "mcpServers": {
+     "agentmemory": {
+       "type": "stdio",
+       "command": "npx",
+       "args": ["-y", "@agentmemory/mcp"],
+       "env": {}
+     }
+   }
+   ```
+
+### Scope-маркировка (обязательно при `memory_save`)
+
+agentmemory не имеет встроенного фильтра по проекту — все memories видны через recall во всех проектах. Чтобы memory из проекта A не «просочилась» советом в проект B, при каждом `memory_save` первая строка `content` должна быть scope-маркером:
+
+- `[scope: project:<имя>]` — только этот проект
+- `[scope: cross-project / <стек>]` — для группы (`cross-project / android / kmp`)
+- `[scope: universal]` — везде
+
+Плюс scope-тег в `concepts` (`scope-project-<name>` / `scope-cross-project` / `scope-universal`). Полные правила — в [CLAUDE.md, раздел "Память"](CLAUDE.md). Подробная операционка по инфраструктуре (launchd plist'ы, troubleshooting туннеля, REST API) — в Obsidian-заметках `Projects/AgentMemory/`.
+
+### Локальный fallback
+
+Если центрального сервера нет — можно поднять сервер на той же машине, что и MCP shim (туннель тогда не нужен, MCP ходит на localhost). **Не рекомендуется как «временное решение, пока централизованный недоступен»** — это создаёт расхождение БД между машинами.
+
 ## Что **не** синхронизируется
 
 `.gitignore` оставляет машинно-локальное и эфемерное за бортом: `sessions/`, `history.jsonl`, `cache/`, `telemetry/`, `statsig/`, `ide/`, `config/`, `plugins/`, `agents/`, `projects/`, `todos/`, `tasks/`, `plans/`, `debug/`, `file-history/`, `checkpoints/`, `downloads/`, `backups/`, `paste-cache/`, `shell-snapshots/`, `session-env/`, `settings.local.json`, `stats-cache.json`, `mcp-needs-auth-cache.json`, `.last-cleanup`, `hooks/tool-size.log`, `hooks/__pycache__/`, `image-cache/`.
