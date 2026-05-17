@@ -4,12 +4,12 @@
 
 После выполнения проекта (или значимого этапа) обязательно составить отчёт и сохранить в Obsidian vault.
 
-**Obsidian vault:** `/Users/shaukat/Documents/Projects/Obsidian Vault/`
+**Obsidian vault:** клон репо `thothlab/openclaw_obsidian_vault` где-то под `~/Documents/` (точное имя папки различается по машинам: `openclaw_obsidian_vault`, `Obsidian Vault`, etc.). Если не уверен — `find ~/Documents -maxdepth 3 -name .obsidian -type d` покажет все локальные vault'ы; проверь `git -C <path> remote -v` и выбери тот, где origin = `thothlab/openclaw_obsidian_vault`.
 **GitHub:** https://github.com/thothlab/openclaw_obsidian_vault
 
-### Куда записывать:
-- Проекты, относящиеся к **OpenClaw** → `Obsidian Vault/OpenClaw/Projects/<проект>/`
-- Все остальные проекты → `Obsidian Vault/Projects/<проект>/`
+### Куда записывать (относительно корня vault):
+- Проекты, относящиеся к **OpenClaw** → `OpenClaw/Projects/<проект>/`
+- Все остальные проекты → `Projects/<проект>/`
 
 ### Что фиксировать (одна папка на проект):
 

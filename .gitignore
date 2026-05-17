@@ -25,6 +25,7 @@ plugins/
 .last-cleanup
 hooks/__pycache__/
 hooks/tool-size.log
+image-cache/
 
 # Agents (not synced - needs cleanup first)
 agents/
