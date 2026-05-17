@@ -1,4 +1,31 @@
-# CLAUDE.md
+# Глобальные правила работы
+
+## Отчётность по проектам
+
+После выполнения проекта (или значимого этапа) обязательно составить отчёт и сохранить в Obsidian vault.
+
+**Obsidian vault:** `/Users/shaukat/Documents/Projects/Obsidian Vault/`
+**GitHub:** https://github.com/thothlab/openclaw_obsidian_vault
+
+### Куда записывать:
+- Проекты, относящиеся к **OpenClaw** → `Obsidian Vault/OpenClaw/Projects/<проект>/`
+- Все остальные проекты → `Obsidian Vault/Projects/<проект>/`
+
+### Что фиксировать (одна папка на проект):
+
+1. **Идея и постановка.md** — исходная идея, требования, ссылки
+2. **Техническое задание.md** — ТЗ, архитектура, зависимости
+3. **План задач и отчёты.md** — план задач + по каждой: запланированное, выполненное, результат
+4. **Правки.md** — если были изменения/правки по ходу: суть правки, что изменено, результат
+5. **Итоговый отчёт.md** — суть задачи, запланированные работы, выполненные работы, результаты, итоги и резюме
+
+### После записи:
+- Коммит и пуш в GitHub (thothlab/openclaw_obsidian_vault)
+- Файлы связывать через Obsidian-ссылки `[[...]]`
+
+---
+
+# Behavioral guidelines
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
