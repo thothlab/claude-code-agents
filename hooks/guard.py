@@ -26,7 +26,15 @@ def block(reason: str) -> None:
     sys.exit(2)
 
 
-def last_user_messages(transcript_path: str, n: int = 3) -> str:
+def last_user_messages(transcript_path: str, n: int | None = 3) -> str:
+    """Concatenated text of user messages from the session transcript.
+
+    n=None returns the whole session; n=N returns only the last N user messages.
+    Use last-N for "what is the user talking about *right now*" checks (Write
+    on new .md). Use whole-session for commit/push: a single explicit "commit"/
+    "push" anywhere in the session is enough — otherwise we burn tokens
+    re-asking every few steps in a long workflow.
+    """
     if not transcript_path or not os.path.exists(transcript_path):
         return ""
     texts: list[str] = []
@@ -77,7 +85,7 @@ def last_user_messages(transcript_path: str, n: int = 3) -> str:
                                 texts.append(collected)
     except Exception:
         return ""
-    return "\n".join(texts[-n:]).lower()
+    return "\n".join(texts if n is None else texts[-n:]).lower()
 
 
 COMMIT_KEYWORDS = [
@@ -107,6 +115,19 @@ NEW_MD_KEYWORDS = [
     r"(создай|напиши|сделай|create|write|make|generate|draft|add)\s+[^.]{0,40}(\.md|документ|markdown|readme|notes|summary|changelog|memo|install|инструкц)",
     r"\b(документац|markdown|документ\b|инструкц)",
 ]
+
+
+def session_authorized(transcript_path: str, patterns: list[str]) -> bool:
+    """Whole-session keyword check. Used for commit/push: one explicit
+    keyword anywhere in the session is enough — avoids re-asking the user
+    every few steps in a long workflow."""
+    text = last_user_messages(transcript_path, n=None)
+    if not text:
+        return False
+    for pat in patterns:
+        if re.search(pat, text, re.IGNORECASE):
+            return True
+    return False
 
 
 def user_authorized(transcript_path: str, patterns: list[str]) -> bool:
@@ -183,22 +204,25 @@ def guard_bash(tool_input: dict, transcript_path: str) -> None:
         if has_git_subcommand(sub, "status") and re.search(r"\s-uall\b", sub):
             block("git status -uall запрещён — раздувает контекст на больших репозиториях.")
 
-        # --- behavioral: commit/push only on explicit user request ---
-        # push разрешение implies commit разрешение (нельзя пушить без коммита).
+        # --- behavioral: commit/push only with session-wide user authorization ---
+        # Session-wide (not last-N): once user said "commit" or "push" anywhere
+        # in this session, subsequent commits/pushes are allowed. This avoids
+        # token-burning re-asks during long workflows (cherry-pick chains, etc.).
+        # Push authorization implies commit authorization (push needs a commit first).
         if has_git_subcommand(sub, "commit"):
-            if not (user_authorized(transcript_path, COMMIT_KEYWORDS)
-                    or user_authorized(transcript_path, PUSH_KEYWORDS)):
+            if not (session_authorized(transcript_path, COMMIT_KEYWORDS)
+                    or session_authorized(transcript_path, PUSH_KEYWORDS)):
                 block(
-                    "git commit без явного запроса. В последних user-сообщениях нет ключевых слов "
-                    "(commit/коммит/закоммить/зафиксируй/push/пуш). Спроси подтверждения у пользователя, "
-                    "затем повтори команду."
+                    "git commit без явной авторизации в этой сессии. Скажи 'закоммить' "
+                    "(или 'commit'/'пуш'/'push' где-то в этой сессии) и hook пропустит "
+                    "все последующие commit'ы."
                 )
 
         if has_git_subcommand(sub, "push"):
-            if not user_authorized(transcript_path, PUSH_KEYWORDS):
+            if not session_authorized(transcript_path, PUSH_KEYWORDS):
                 block(
-                    "git push без явного запроса. В последних user-сообщениях нет ключевых слов "
-                    "(push/пуш/запушь/залей/отправь на remote). Спроси подтверждения."
+                    "git push без явной авторизации в этой сессии. Скажи 'запушь' "
+                    "(или 'push') и hook пропустит все последующие push'ы."
                 )
 
     # rm -rf (любая комбинация флагов содержащая r и f)
