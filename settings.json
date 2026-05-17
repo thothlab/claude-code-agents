@@ -21,12 +21,14 @@
       "Bash(node:*)",
       "Bash(which:*)",
       "Bash(pwd)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "mcp__pencil"
     ],
     "deny": [
       "Bash(rm -rf /)"
     ]
   },
+  "model": "sonnet",
   "enabledMcpjsonServers": [
     "agentmemory"
   ],
@@ -58,11 +60,15 @@
     "type": "command",
     "command": "sh $HOME/.claude/statusline-command.sh"
   },
+  "enabledPlugins": {
+    "rust-analyzer-lsp@claude-plugins-official": true
+  },
   "alwaysThinkingEnabled": true,
-  "effortLevel": "xhigh",
+  "effortLevel": "high",
   "advisorModel": "opus",
   "autoUpdatesChannel": "stable",
   "minimumVersion": "2.1.85",
   "skipDangerousModePermissionPrompt": true,
+  "theme": "dark-ansi",
   "agentPushNotifEnabled": true
 }
