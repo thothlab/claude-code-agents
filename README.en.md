@@ -80,7 +80,7 @@ Plus helper scripts not directly exposed as slash-commands:
 
 Memory infrastructure is wired in via the MCP shim `@agentmemory/mcp`, declared in `~/.claude.json` (not in this repo — that file holds personal paths and tokens). Once installed, Claude Code gains tools `mcp__agentmemory__memory_save`, `memory_recall`, `memory_smart_search`, `memory_sessions`.
 
-> ⚠️ **Do not confuse with the `rohitg00/agentmemory` plugin** (same name, GitHub repo). That plugin variant ships 12 hooks and is known to loop via the Stop hook ([issue #149](https://github.com/rohitg00/agentmemory/issues/149)) and burn API tokens. **Do not install it.** Leftover declarative entries in `settings.json` (`enabledPlugins.agentmemory@agentmemory`, `extraKnownMarketplaces.agentmemory`) are inert (`plugins/installed_plugins.json` is empty); they survive from earlier merges and can be removed in a follow-up PR — kept for now to match the home-machine config.
+> ⚠️ **Do not confuse with the `rohitg00/agentmemory` plugin** (same name, GitHub repo). That plugin variant ships 12 hooks and is known to loop via the Stop hook ([issue #149](https://github.com/rohitg00/agentmemory/issues/149)) and burn API tokens. **Do not install it.** `settings.json` deliberately carries no `enabledPlugins`/`extraKnownMarketplaces` entries for it.
 
 ### Architecture (central server + tunnel)
 

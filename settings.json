@@ -54,17 +54,6 @@
       }
     ]
   },
-  "enabledPlugins": {
-    "agentmemory@agentmemory": true
-  },
-  "extraKnownMarketplaces": {
-    "agentmemory": {
-      "source": {
-        "source": "github",
-        "repo": "rohitg00/agentmemory"
-      }
-    }
-  },
   "statusLine": {
     "type": "command",
     "command": "sh $HOME/.claude/statusline-command.sh"

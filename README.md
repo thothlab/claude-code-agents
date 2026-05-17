@@ -80,7 +80,7 @@ Observability: размер ответа каждого tool-call дописыв
 
 Memory-инфраструктура подключается через MCP shim `@agentmemory/mcp`, прописанный в `~/.claude.json` (а не в этом репо — там персональные пути и токены). После установки в Claude Code появляются tools `mcp__agentmemory__memory_save`, `memory_recall`, `memory_smart_search`, `memory_sessions`.
 
-> ⚠️ **Не путать с плагином `rohitg00/agentmemory`** (одноимённый GitHub-репо). Тот plugin-вариант с 12 хуками известен зацикливанием через Stop-hook ([issue #149](https://github.com/rohitg00/agentmemory/issues/149)) и активным расходом API-токенов. **Не использовать.** Хотя в `settings.json` остались декларативные записи (`enabledPlugins.agentmemory@agentmemory`, `extraKnownMarketplaces.agentmemory`) — они неактивны (`plugins/installed_plugins.json` пуст), и это унаследовано из истории merge'ев. Удалить можно одним PR; пока оставлено для совместимости с конфигом домашней машины.
+> ⚠️ **Не путать с плагином `rohitg00/agentmemory`** (одноимённый GitHub-репо). Тот plugin-вариант с 12 хуками известен зацикливанием через Stop-hook ([issue #149](https://github.com/rohitg00/agentmemory/issues/149)) и активным расходом API-токенов. **Не использовать.** В `settings.json` намеренно нет соответствующих `enabledPlugins`/`extraKnownMarketplaces` записей.
 
 ### Архитектура (центральный сервер + туннель)
 
