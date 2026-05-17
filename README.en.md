@@ -60,10 +60,14 @@ Observability: every tool response size is appended to `hooks/tool-size.log` (gi
 
 | Command | Purpose |
 |---|---|
-| `/sync` | Pull/push this repo via `sync.sh`; asks before auto-committing. |
+| `/commit` | Stage + commit changes in the current git repo (optional message argument). Does not push. |
+| `/push` | Push current branch to upstream. Asks what to do with uncommitted work if any. |
+| `/sync` | Pull/push **this** repo (`thothlab/claude-code-agents`) via `sync.sh`. |
 | `/clean-arch` | Clean Architecture rules for Android / KMP / Compose Multiplatform. |
 | `/mvvm-udf` | MVVM + Unidirectional Data Flow rules. |
 | `/mvvm-udf-kmp` | MVVM + UDF tailored for KMP/CMP. |
+
+> Why `/commit` and `/push` if there is just `git`? They proactively satisfy `hooks/guard.py` (the literal keyword for authorisation is in the command itself) — no need to remember the right spelling of `коммит`/`commit`, no need to hit a block and then re-confirm. Typos `комит`, `commiit` don't matter: the commands carry the right keyword verbatim.
 
 Plus helper scripts not directly exposed as slash-commands:
 - `commands/checkpoint-manager.sh`, `commands/standard-checkpoint-hooks.sh` — checkpoint utilities.

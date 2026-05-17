@@ -60,10 +60,14 @@ Observability: размер ответа каждого tool-call дописыв
 
 | Команда | Назначение |
 |---|---|
-| `/sync` | Pull/push текущего репо через `sync.sh`; спрашивает перед авто-коммитом. |
+| `/commit` | Стейдж + commit изменений в текущем git репо (опционально с message-аргументом). Не делает push. |
+| `/push` | Push текущей ветки на upstream. Спрашивает что делать с uncommitted, если есть. |
+| `/sync` | Pull/push **этого** репо (`thothlab/claude-code-agents`) через `sync.sh`. |
 | `/clean-arch` | Правила Clean Architecture для Android / KMP / Compose Multiplatform. |
 | `/mvvm-udf` | Правила MVVM + Unidirectional Data Flow. |
 | `/mvvm-udf-kmp` | MVVM + UDF, адаптированные под KMP/CMP. |
+
+> Зачем `/commit` и `/push`, если есть просто `git`? Они проактивно проходят через `hooks/guard.py` (явные keywords для авторизации) — не нужно угадывать правописание `коммит`/`commit`, не нужно ждать block и потом подтверждать. Опечатки `комит`, `commiit` не страшны: команды содержат правильное keyword буквально.
 
 Дополнительно вспомогательные скрипты, не оформленные как slash-команды:
 - `commands/checkpoint-manager.sh`, `commands/standard-checkpoint-hooks.sh` — утилиты checkpoint'ов.
