@@ -25,6 +25,70 @@
 
 ---
 
+## Agentmemory — общая память для всех проектов
+
+Плагин `agentmemory@agentmemory` установлен глобально (user-scope, MCP-сервер на :3111, auto-capture хуки активны). Это основной слой долговременной памяти **во всех проектах** — поверх file-based auto memory.
+
+**Когда сохранять (`/agentmemory:remember`):**
+- Состояние работы — на чём остановились, что выбрали, почему. Перед концом сессии или после значимого этапа.
+- Решения и trade-offs, которые не очевидны из кода/git-истории.
+- Факты про предпочтения пользователя и устоявшиеся паттерны работы.
+- Делать это проактивно, без напоминаний. Если есть, что зафиксировать — фиксируй.
+
+**Когда вспоминать (`/agentmemory:recall`):**
+- **В начале каждой задачи** — делать quick recall по ключевым словам темы (имя фичи, технология, тип бага). Цель — не пропустить релевантный generalized-урок из других проектов.
+- Также: когда пользователь говорит «вспомни / на чём остановились / что мы делали».
+
+**Дополнительно:** `/agentmemory:session-history` — обзор недавних сессий, `/agentmemory:forget` — удалить запись.
+
+**Разделение слоёв:**
+- file-based MEMORY.md (`~/.claude/projects/<…>/memory/`) — project-локальная, всегда подгружается в контекст.
+- agentmemory — cross-project, операционные снимки, semantic recall по запросу.
+- Не дублировать одно и то же в обоих слоях.
+
+**Scope-маркировка в agentmemory (обязательно при `memory_save`):**
+
+API agentmemory не имеет встроенного фильтра по проекту, поэтому маркировка делается вручную, чтобы избежать утечек «совет из проекта A применился в проекте B».
+
+*Что есть в API для маркировки:*
+- `concepts` — comma-separated теги (используем как scope-метки)
+- `type` — фиксированный enum: `pattern` / `preference` / `architecture` / `bug` / `workflow` / `fact`
+- `files` — пути файлов (тоже scope-signal по cwd)
+- Каждое наблюдение автоматически привязывается к проекту по cwd (видно в колонке `PROJECT` на дашборде)
+
+*Чего нет:*
+- Параметра `project` / `scope` в `memory_save`
+- Фильтра по проекту в `memory_recall` / `memory_smart_search` — поиск возвращает результаты из всех проектов
+
+*Соглашение (обязательное при сохранении):*
+
+1. **Первая строка `content`** всегда начинается со scope-маркера в одном из форматов:
+   - `[scope: project:<имя-проекта>]` — только этот проект.  
+     Примеры: `[scope: project:itrack-tsd]`, `[scope: project:my-bruno]`.
+   - `[scope: cross-project / <стек или категория>]` — применимо к группе проектов.  
+     Примеры: `[scope: cross-project / android / kmp]`, `[scope: cross-project / web]`, `[scope: cross-project / debugging / ui-state-restore]`.
+   - `[scope: universal]` — применимо везде, независимо от стека.
+
+2. **В `concepts`** обязательно добавлять scope-теги в kebab-case:
+   - Для project-локального: `scope-project-<name>` (например `scope-project-itrack-tsd`).
+   - Для cross-project: `scope-cross-project` плюс теги категории/стека (`android`, `kmp`, `debugging`, `ui-state-restore`).
+   - Для универсального: `scope-universal`.
+
+3. **Generalized vs project-specific формулировки в content:**
+   - Безопасно cross-project: «сначала логи, потом фикс», «при async listener'ах проверять timing через post».
+   - Опасно cross-project (использовать только в project-scope): конкретные имена классов, тегов, путей, токенов («тег `SSH` в Timber», `OperationHistoryController`, `ru.frosteye.itrack`).
+   - Если правило универсальное, но опирается на проектный пример — выносить пример в комментарий, не в правило.
+
+*При `memory_recall` / `memory_smart_search`:*
+
+- Перед применением результата **прочитать первую строку `content`** и сравнить scope с текущим проектом.
+- Если scope = `project:<X>` и текущий проект ≠ X — **игнорировать результат**, не применять, не упоминать пользователю как релевантный.
+- Если scope = `cross-project / <stack>` — проверить, что текущий стек входит в указанные категории. Если нет — игнорировать.
+- Если scope = `universal` — применимо всегда.
+- При неоднозначности (scope не указан, нет первой строки с маркером) — обращаться с записью как с `project:<source-project>` по умолчанию (наиболее безопасный fallback).
+
+---
+
 # Behavioral guidelines
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
